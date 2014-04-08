@@ -1,0 +1,9 @@
+{
+  "name": "install-collection",
+  "title": "Install Collection",
+  "id": "install-collection@xrxrxr",
+  "description": "Install add-ons from a collection from addons.mozilla.org in a few clicks",
+  "author": "XrXrXr",
+  "license": "MPL 2.0",
+  "version": "1.0"
+}
