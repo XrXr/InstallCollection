@@ -5,5 +5,7 @@
   "description": "Install add-ons from a collection from addons.mozilla.org in a few clicks",
   "author": "XrXrXr",
   "license": "MPL 2.0",
+  "icon": "data/icons/active48.png",
+  "icon64": "data/icons/active64.png",
   "version": "1.0"
 }
