@@ -19,8 +19,10 @@ install_collection.install_view = function(ctrl){
                     m('div', {class: 'progress'},[
                         m('div', {class: 'progress-bar',
                             role: 'progressbar',
-                            style: {width: '40%'}}, [
-                                m('span', {style: {color: 'black'}}, add_on.name())
+                            style: {width: Math.round(add_on.progress()*100) + '%'}}, [
+                                m('span', {style: {color: 'black',
+                                position: 'absolute', left:'6%', overflow: scroll}},
+                                add_on.name())
                             ])
                     ])
             ]);
@@ -28,13 +30,16 @@ install_collection.install_view = function(ctrl){
 };
 
 install_collection.selection_view = function(ctrl){
-    return m('table',ctrl.list.map(function (add_on, index){
-        return m('tr',[
+    return m('div',[m('button', {type: 'button',
+         class: "btn btn-danger btn-lg", onclick: confirm},
+         "Install Selected"),
+        m('hr'),
+        m('table',ctrl.list.map(function (add_on, index){
+            return m('tr',[
                 m('td',{style: {padding: "0 0 5px 0"}},[
                     m('button', {onclick: m.withAttr('class', function(value){
                         if (value.trim() == enabled){
                             add_on.button_class(disabled);
-                            console.log("success!");
                         } else {
                             add_on.button_class(enabled);
                         }
@@ -44,8 +49,9 @@ install_collection.selection_view = function(ctrl){
                         add_on.name())
                     ])
                 ]
-               );
-    }));
+            );
+        }))]
+    );
 };
 
 //controller
@@ -61,6 +67,9 @@ install_collection.install_controller = function(){
             this.url("");
         }
     };
+    this.clear = function() {
+        this.list = new install_collection.Add_on_list();
+    };
 };
 
 var ctrl = new install_collection.install_controller();
@@ -70,11 +79,22 @@ var ctrl = new install_collection.install_controller();
 // ctrl.name("Write code");
 // ctrl.url("Good luck!");
 // ctrl.add(ctrl.name, ctrl.url);
-// console.log(ctrl.list.length); //1
+// console.log(ctrl.list.length); //2
 m.render(document.body, install_collection.selection_view(ctrl));
 
+function confirm(){
+    var add_ons = {names: [], urls: []};
+    for (var i = 0; i < ctrl.list.length; i++) {
+        if (ctrl.list[i].button_class() == enabled){
+            add_ons.names.push(ctrl.list[i].name());
+            add_ons.urls.push(ctrl.list[i].url());            
+        }
+    }
+    addon.port.emit("confirm-install", add_ons);
+}
 
-addon.port.emit("ping");
+addon.port.emit("loaded");
+
 addon.port.on("add-ons", function(add_ons) {
     for (var i = 0; i < add_ons.names.length; i++) {
         ctrl.name(add_ons.names[i]); 
@@ -82,4 +102,24 @@ addon.port.on("add-ons", function(add_ons) {
         ctrl.add(ctrl.name, ctrl.url);
     }
     m.render(document.body, install_collection.selection_view(ctrl));
+});
+
+addon.port.on("install", function(add_ons) {
+    ctrl.clear();
+    for (var i = 0; i < add_ons.names.length; i++) {
+        ctrl.name(add_ons.names[i]); 
+        ctrl.url(add_ons.urls[i]); 
+        ctrl.add(ctrl.name, ctrl.url);
+    }
+    m.render(document.body, install_collection.install_view(ctrl));
+});
+
+addon.port.on("progress-update", function(progress_update) {
+    for (var i = 0; i < ctrl.list.length; i++) {
+        if (ctrl.list[i].name() == progress_update.name){
+            ctrl.list[i].progress(progress_update.progress);
+            m.render(document.body, install_collection.install_view(ctrl));
+            break;
+        }
+    }
 });
