@@ -1,12 +1,18 @@
-//name space
-var install_collection = {};
 const enabled = 'btn btn-success';
 const disabled = 'btn btn-default';
+const p_normal = "progress-bar";
+const p_success = "progress-bar progress-bar-success";
+const p_restart = "progress-bar progress-bar-warning";
+
+//name space
+var install_collection = {};
+
 //modules
 install_collection.Add_on = function(data){
     this.name = m.prop(data.name);
     this.url = m.prop(data.url);
     this.progress = m.prop(0);
+    this.progress_class = m.prop(p_normal);
     this.button_class = m.prop(enabled);
 };
 
@@ -17,13 +23,13 @@ install_collection.install_view = function(ctrl){
     return  ctrl.list.map(function (add_on, index){
         return m('div', {style: {margin:'0 5% 0 5%'}},[
                     m('div', {class: 'progress'},[
-                        m('div', {class: 'progress-bar',
+                        m('div', {class: add_on.progress_class(),
                             role: 'progressbar',
-                            style: {width: Math.round(add_on.progress()*100) + '%'}}, [
-                                m('span', {style: {color: 'black',
-                                position: 'absolute', left:'6%', overflow: scroll}},
-                                add_on.name())
-                            ])
+                            style: {width: Math.round(add_on.progress()*100) + '%'}}),
+                        m('div',{style:{position: "relative"}},[
+                            m('div', {class: 'progress_text'},
+                            add_on.name())
+                        ])
                     ])
             ]);
     });
@@ -73,14 +79,16 @@ install_collection.install_controller = function(){
 };
 
 var ctrl = new install_collection.install_controller();
-// ctrl.name("Write code");
+// ctrl.name("Write code asd asd ljas; ldjasl; djal;ks jdl;kasj dl;kj asl;kd jal;sk jdla;ksj lk; jds;ljd ;las djal;kjs d");
 // ctrl.url("Good luck!");
 // ctrl.add(ctrl.name, ctrl.url);
 // ctrl.name("Write code");
 // ctrl.url("Good luck!");
 // ctrl.add(ctrl.name, ctrl.url);
+// ctrl.list[0].progress(0.5);
 // console.log(ctrl.list.length); //2
 m.render(document.body, install_collection.selection_view(ctrl));
+// m.render(document.body, install_collection.install_view(ctrl));
 
 function confirm(){
     var add_ons = {names: [], urls: []};
@@ -91,6 +99,14 @@ function confirm(){
         }
     }
     addon.port.emit("confirm-install", add_ons);
+}
+
+function get_add_on_by_name (name) {
+    for (var i = 0; i < ctrl.list.length; i++) {
+        if (ctrl.list[i].name() == name){
+            return ctrl.list[i];
+        }
+    }
 }
 
 addon.port.emit("loaded");
@@ -105,6 +121,7 @@ addon.port.on("add-ons", function(add_ons) {
 });
 
 addon.port.on("install", function(add_ons) {
+    //switch to install view
     ctrl.clear();
     for (var i = 0; i < add_ons.names.length; i++) {
         ctrl.name(add_ons.names[i]); 
@@ -115,11 +132,29 @@ addon.port.on("install", function(add_ons) {
 });
 
 addon.port.on("progress-update", function(progress_update) {
+    get_add_on_by_name(progress_update.name).
+        progress(progress_update.progress);
+    m.render(document.body, install_collection.install_view(ctrl));
+});
+
+addon.port.on("install-finished", function(finished) {
+    if (finished.needs_restart){
+        var add_on = get_add_on_by_name(finished.name);
+        add_on.progress_class(p_restart);
+        add_on.name(add_on.name() + " - Needs restart");
+    } else {
+        get_add_on_by_name(finished.name).
+        progress_class(p_success);
+    }
+    m.render(document.body, install_collection.install_view(ctrl));
+    var all_done = true;
     for (var i = 0; i < ctrl.list.length; i++) {
-        if (ctrl.list[i].name() == progress_update.name){
-            ctrl.list[i].progress(progress_update.progress);
-            m.render(document.body, install_collection.install_view(ctrl));
+        if (ctrl.list[i].progress_class() == p_normal){
+            all_done = false;
             break;
         }
+    }
+    if (all_done){
+        addon.port.emit("all-done");
     }
 });
