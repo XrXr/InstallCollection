@@ -131,6 +131,7 @@ function get_add_on_by_name (name) {
 addon.port.emit("loaded");
 
 addon.port.on("add-ons", function(add_ons) {
+    ctrl.clear();
     for (var i = 0; i < add_ons.names.length; i++) {
         ctrl.name(add_ons.names[i]); 
         ctrl.url(add_ons.urls[i]); 
