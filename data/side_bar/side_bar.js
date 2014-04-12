@@ -37,7 +37,8 @@ install_collection.install_view = function(ctrl){
 
 install_collection.selection_view = function(ctrl){
     return m('div',[m('button', {type: 'button',
-         class: "btn btn-danger btn-lg", onclick: confirm},
+            class: "btn btn-danger btn-lg", onclick: confirm,
+            disabled: !ctrl.clear_to_install()},
          "Install Selected"),
         m('hr'),
         m('table',ctrl.list.map(function (add_on, index){
@@ -46,8 +47,19 @@ install_collection.selection_view = function(ctrl){
                     m('button', {onclick: m.withAttr('class', function(value){
                         if (value.trim() == enabled){
                             add_on.button_class(disabled);
+                            var all_disabled = true;
+                            for (var i = 0; i < ctrl.list.length; i++) {
+                                if (ctrl.list[i].button_class() == enabled){
+                                    all_disabled = false;
+                                    break;
+                                }
+                            }
+                            if (all_disabled){
+                                ctrl.clear_to_install(false); 
+                            }
                         } else {
                             add_on.button_class(enabled);
+                            ctrl.clear_to_install(true);
                         }
                         m.render(document.body, install_collection.selection_view(ctrl));
                     }),
@@ -62,6 +74,7 @@ install_collection.selection_view = function(ctrl){
 
 //controller
 install_collection.install_controller = function(){
+    this.clear_to_install = m.prop(true);
     this.list = new install_collection.Add_on_list();
     this.name = m.prop("");
     this.url = m.prop("");
@@ -79,7 +92,7 @@ install_collection.install_controller = function(){
 };
 
 var ctrl = new install_collection.install_controller();
-// ctrl.name("Write code asd asd ljas; ldjasl; djal;ks jdl;kasj dl;kj asl;kd jal;sk jdla;ksj lk; jds;ljd ;las djal;kjs d");
+// ctrl.name("Write code");
 // ctrl.url("Good luck!");
 // ctrl.add(ctrl.name, ctrl.url);
 // ctrl.name("Write code");
@@ -138,13 +151,13 @@ addon.port.on("progress-update", function(progress_update) {
 });
 
 addon.port.on("install-finished", function(finished) {
+    var add_on = get_add_on_by_name(finished.name);
+    add_on.progress(1);
     if (finished.needs_restart){
-        var add_on = get_add_on_by_name(finished.name);
         add_on.progress_class(p_restart);
         add_on.name(add_on.name() + " - Needs restart");
     } else {
-        get_add_on_by_name(finished.name).
-        progress_class(p_success);
+        add_on.progress_class(p_success);
     }
     m.render(document.body, install_collection.install_view(ctrl));
     var all_done = true;

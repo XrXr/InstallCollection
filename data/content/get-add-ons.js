@@ -28,12 +28,11 @@ self.port.on("get-add-ons", function() {
         self.port.emit("no-add-ons-found", 'nothing available');
         return;
     }
-
     self.port.emit('found-add-ons', {names: addon_titles, urls: xpi_links});
 
-    for (var i = 0; i < xpi_links.length; i++) {
-        console.log(addon_titles[i] + " " + xpi_links[i]);
-    }
+    // for (var i = 0; i < xpi_links.length; i++) {
+    //     console.log(addon_titles[i] + " " + xpi_links[i]);
+    // }
 });
 
 self.port.emit('collection-page');
