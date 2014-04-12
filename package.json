@@ -2,7 +2,7 @@
   "name": "install-collection",
   "title": "Install Collection",
   "id": "install-collection@xrxrxr",
-  "description": "Install add-ons from a collection from addons.mozilla.org in a few clicks",
+  "description": "Install add-ons from a collection on addons.mozilla.org in a few clicks",
   "author": "XrXrXr",
   "license": "MPL 2.0",
   "icon": "data/icons/active48.png",
