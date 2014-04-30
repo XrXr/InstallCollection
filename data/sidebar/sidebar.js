@@ -43,14 +43,14 @@ install_collection.install_view = function(ctrl){
 
 install_collection.selection_view = function(ctrl){
     return m('div',[m('button', {type: 'button',
-            class: "btn btn-danger btn-lg", onclick: confirm,
+            class: "btn btn-danger center-block", onclick: ctrl.confirm_install,
             disabled: !ctrl.clear_to_install()},
          "Install Selected"),
         m('hr'),
-        m('table',ctrl.list.map(function (add_on, index){
-            return m('tr',[
+        m('table', ctrl.list.map(function (add_on, index){
+            return m('tr', [
                 m('td',{style: {padding: "0 0 5px 0"}},[
-                    m('button', {onclick: m.withAttr('class', function(value){
+                    m('button',{onclick: m.withAttr('class', function(value){
                         if (value.trim() == enabled){
                             add_on.button_class(disabled);
                             var all_disabled = true;
@@ -78,12 +78,23 @@ install_collection.selection_view = function(ctrl){
     );
 };
 
+install_collection.confirm_install_view = function(ctrl) {
+    return m('div', [m('p', {class: "text_center"}, ["Install add-ons only from authors whom you trust",
+        m('br'),
+         "Malicious software can damage your computer or violate your privacy"]),
+        m('button', {type: 'button',
+                     class: "btn btn-danger btn-lg center-block",
+                     onclick: confirm, disabled:ctrl.confirm_timer() !== null},
+         ["I accept the risks", m('br'), ctrl.confirm_timer()])]);
+};
+
 //controller
 install_collection.install_controller = function(){
     this.clear_to_install = m.prop(true);
     this.list = new install_collection.Add_on_list();
     this.name = m.prop("");
     this.url = m.prop("");
+    this.confirm_timer = m.prop(3);
     this.add = function(name, url){
         if (name()) {
             this.list.push(new install_collection.Add_on(
@@ -95,18 +106,39 @@ install_collection.install_controller = function(){
     this.clear = function() {
         this.list = new install_collection.Add_on_list();
     };
+
+    var timer = this.confirm_timer;
+    var ctrl = this;
+    this.confirm_install = function() {
+        m.render(document.body, install_collection.confirm_install_view(ctrl));
+        function subtract(times) {
+            if (times === 0){
+                return;
+            }
+            window.setTimeout(function(){
+                timer(timer() - 1);
+                if (timer() === 0){
+                    timer(null);
+                }
+                m.render(document.body, install_collection.confirm_install_view(ctrl));
+                subtract(times - 1);
+            }, 1000);
+        }
+        subtract(3);
+    };
 };
 
 var ctrl = new install_collection.install_controller();
-// ctrl.name("Write code");
-// ctrl.url("Good luck!");
-// ctrl.add(ctrl.name, ctrl.url);
-// ctrl.name("Write code");
-// ctrl.url("Good luck!");
-// ctrl.add(ctrl.name, ctrl.url);
+ctrl.name("Write code");
+ctrl.url("Good luck!");
+ctrl.add(ctrl.name, ctrl.url);
+ctrl.name("Write code");
+ctrl.url("Good luck!");
+ctrl.add(ctrl.name, ctrl.url);
 // ctrl.list[0].progress(0.5);
 // console.log(ctrl.list.length); //2
 m.render(document.body, install_collection.selection_view(ctrl));
+// m.render(document.body, install_collection.confirm_install_view(ctrl));
 // m.render(document.body, install_collection.install_view(ctrl));
 
 function confirm(){
