@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
- * 
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
  * Author: XrXrXr
  */
 const enabled = 'btn btn-success';
@@ -10,10 +10,10 @@ const p_normal = "progress-bar";
 const p_success = "progress-bar progress-bar-success";
 const p_restart = "progress-bar progress-bar-warning";
 
-//name space
+// name space
 var install_collection = {};
 
-//modules
+// modules
 install_collection.Add_on = function(data){
     this.name = m.prop(data.name);
     this.url = m.prop(data.url);
@@ -24,7 +24,7 @@ install_collection.Add_on = function(data){
 
 install_collection.Add_on_list = Array;
 
-//views
+// views
 install_collection.install_view = function(ctrl){
     return  ctrl.list.map(function (add_on, index){
         return m('div', {style: {margin:'0 5% 0 5%'}},[
@@ -61,7 +61,7 @@ install_collection.selection_view = function(ctrl){
                                 }
                             }
                             if (all_disabled){
-                                ctrl.clear_to_install(false); 
+                                ctrl.clear_to_install(false);
                             }
                         } else {
                             add_on.button_class(enabled);
@@ -85,10 +85,11 @@ install_collection.confirm_install_view = function(ctrl) {
         m('button', {type: 'button',
                      class: "btn btn-danger btn-lg center-block",
                      onclick: confirm, disabled:ctrl.confirm_timer() !== null},
-         ["I accept the risks", m('br'), ctrl.confirm_timer()])]);
+            ["I accept the risks", m('br'), ctrl.confirm_timer()])
+        ]);
 };
 
-//controller
+// controller
 install_collection.install_controller = function(){
     this.clear_to_install = m.prop(true);
     this.list = new install_collection.Add_on_list();
@@ -146,7 +147,7 @@ function confirm(){
     for (var i = 0; i < ctrl.list.length; i++) {
         if (ctrl.list[i].button_class() == enabled){
             add_ons.names.push(ctrl.list[i].name());
-            add_ons.urls.push(ctrl.list[i].url());            
+            add_ons.urls.push(ctrl.list[i].url());
         }
     }
     addon.port.emit("confirm-install", add_ons);
@@ -165,8 +166,8 @@ addon.port.emit("loaded");
 addon.port.on("add-ons", function(add_ons) {
     ctrl.clear();
     for (var i = 0; i < add_ons.names.length; i++) {
-        ctrl.name(add_ons.names[i]); 
-        ctrl.url(add_ons.urls[i]); 
+        ctrl.name(add_ons.names[i]);
+        ctrl.url(add_ons.urls[i]);
         ctrl.add(ctrl.name, ctrl.url);
     }
     m.render(document.body, install_collection.selection_view(ctrl));
@@ -176,8 +177,8 @@ addon.port.on("install", function(add_ons) {
     //switch to install view
     ctrl.clear();
     for (var i = 0; i < add_ons.names.length; i++) {
-        ctrl.name(add_ons.names[i]); 
-        ctrl.url(add_ons.urls[i]); 
+        ctrl.name(add_ons.names[i]);
+        ctrl.url(add_ons.urls[i]);
         ctrl.add(ctrl.name, ctrl.url);
     }
     m.render(document.body, install_collection.install_view(ctrl));
