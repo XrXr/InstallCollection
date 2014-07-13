@@ -4,11 +4,11 @@
  *
  * Author: XrXrXr
  */
-const enabled = 'btn btn-success';
-const disabled = 'btn btn-default';
-const p_normal = "progress-bar";
-const p_success = "progress-bar progress-bar-success";
-const p_restart = "progress-bar progress-bar-warning";
+const ENABLED = 'btn btn-success';
+const DISABLED = 'btn btn-default';
+const P_NORMAL = "progress-bar";
+const P_SUCCESS = "progress-bar progress-bar-success";
+const P_RESTART = "progress-bar progress-bar-warning";
 
 // name space
 var install_collection = {};
@@ -18,11 +18,9 @@ install_collection.Add_on = function(data){
     this.name = m.prop(data.name);
     this.url = m.prop(data.url);
     this.progress = m.prop(0);
-    this.progress_class = m.prop(p_normal);
-    this.button_class = m.prop(enabled);
+    this.progress_class = m.prop(P_NORMAL);
+    this.button_class = m.prop(ENABLED);
 };
-
-install_collection.Add_on_list = Array;
 
 // views
 install_collection.install_view = function(ctrl){
@@ -33,7 +31,7 @@ install_collection.install_view = function(ctrl){
                             role: 'progressbar',
                             style: {width: Math.round(add_on.progress()*100) + '%'}}),
                         m('div',{style:{position: "relative"}},[
-                            m('div', {class: 'progress_text'},
+                            m('div', {class: 'progress-text'},
                             add_on.name())
                         ])
                     ])
@@ -43,29 +41,28 @@ install_collection.install_view = function(ctrl){
 
 install_collection.selection_view = function(ctrl){
     return m('div',[m('button', {type: 'button',
-            class: "btn btn-danger center-block", onclick: ctrl.confirm_install,
+            class: "btn btn-danger center-block",
+            onclick: ctrl.confirm_install,
             disabled: !ctrl.clear_to_install()},
-         "Install Selected"),
-        m('hr'),
+            "Install Selected"),
+        m('button', {type: 'button',
+            class: "btn btn-info utility-button",
+            onclick: ctrl.toggle_all},
+            "Toggle all"),
+        m('br'),
+        m('button', {type: 'button',
+            class: "btn btn-info utility-button",
+            onclick: ctrl.manual_install},
+            "Need manual install"),
+        m('hr', {style:{marginTop:"10px", marginBottom:"10px"}}),
         m('table', ctrl.list.map(function (add_on, index){
             return m('tr', [
-                m('td',{style: {padding: "0 0 5px 0"}},[
+                m('td',{style: {padding: "0 0 5px 5px"}},[
                     m('button',{onclick: m.withAttr('class', function(value){
-                        if (value.trim() == enabled){
-                            add_on.button_class(disabled);
-                            var all_disabled = true;
-                            for (var i = 0; i < ctrl.list.length; i++) {
-                                if (ctrl.list[i].button_class() == enabled){
-                                    all_disabled = false;
-                                    break;
-                                }
-                            }
-                            if (all_disabled){
-                                ctrl.clear_to_install(false);
-                            }
+                        if (value.trim() == ENABLED){
+                            add_on.button_class(DISABLED);
                         } else {
-                            add_on.button_class(enabled);
-                            ctrl.clear_to_install(true);
+                            add_on.button_class(ENABLED);
                         }
                         m.render(document.body, install_collection.selection_view(ctrl));
                     }),
@@ -79,37 +76,39 @@ install_collection.selection_view = function(ctrl){
 };
 
 install_collection.confirm_install_view = function(ctrl) {
-    return m('div', [m('p', {class: "text_center"}, ["Install add-ons only from authors whom you trust",
-        m('br'),
-         "Malicious software can damage your computer or violate your privacy"]),
-        m('button', {type: 'button',
-                     class: "btn btn-danger btn-lg center-block",
-                     onclick: confirm, disabled:ctrl.confirm_timer() !== null},
-            ["I accept the risks", m('br'), ctrl.confirm_timer()])
+    return m('div', [m('p', {style:{textAlign: "center"}},
+        ["Install add-ons only from authors whom you trust",
+            m('br'),
+                "Malicious software can damage your computer or violate your privacy"]),
+            m('button', {type: 'button',
+                         class: "btn btn-danger btn-lg center-block",
+                         onclick: confirm, disabled:ctrl.confirm_timer() !== null},
+                ["I accept the risks", m('br'), ctrl.confirm_timer()])
         ]);
 };
 
 // controller
 install_collection.install_controller = function(){
-    this.clear_to_install = m.prop(true);
-    this.list = new install_collection.Add_on_list();
-    this.name = m.prop("");
-    this.url = m.prop("");
+    var ctrl = this;
+    this.list = [];
     this.confirm_timer = m.prop(3);
-    this.add = function(name, url){
-        if (name()) {
-            this.list.push(new install_collection.Add_on(
-                {name: name(), url: url()}));
-            this.name("");
-            this.url("");
-        }
-    };
-    this.clear = function() {
-        this.list = new install_collection.Add_on_list();
+
+    this.clear_to_install = function() {
+        return ctrl.list.some(e => e.button_class() == ENABLED);
     };
 
-    var timer = this.confirm_timer;
-    var ctrl = this;
+    this.add = function(name, url){
+        if (name) {
+            this.list.push(new install_collection.Add_on(
+                {name: name, url: url}
+            ));
+        }
+    };
+
+    this.clear = function() {
+        this.list = [];
+    };
+
     this.confirm_install = function() {
         m.render(document.body, install_collection.confirm_install_view(ctrl));
         function subtract(times) {
@@ -117,9 +116,9 @@ install_collection.install_controller = function(){
                 return;
             }
             window.setTimeout(function(){
-                timer(timer() - 1);
-                if (timer() === 0){
-                    timer(null);
+                ctrl.confirm_timer(ctrl.confirm_timer() - 1);
+                if (ctrl.confirm_timer() === 0){
+                    ctrl.confirm_timer(null);
                 }
                 m.render(document.body, install_collection.confirm_install_view(ctrl));
                 subtract(times - 1);
@@ -127,15 +126,27 @@ install_collection.install_controller = function(){
         }
         subtract(3);
     };
+
+    this.toggle_all = function() {
+        var deselect = ctrl.list.some(function(e) {
+            return e.button_class() == ENABLED;
+        });
+        if (deselect){
+            ctrl.list.forEach(e => e.button_class(DISABLED));
+        } else {
+            ctrl.list.forEach(e => e.button_class(ENABLED));
+        }
+        m.render(document.body, install_collection.selection_view(ctrl));
+    };
+
+    this.manual_install = function() {
+        // TODO: fill this
+    };
 };
 
 var ctrl = new install_collection.install_controller();
-ctrl.name("Write code");
-ctrl.url("Good luck!");
-ctrl.add(ctrl.name, ctrl.url);
-ctrl.name("Write code");
-ctrl.url("Good luck!");
-ctrl.add(ctrl.name, ctrl.url);
+ctrl.add("Write code", "Good luck!");
+ctrl.add("Write code", "Good luck!");
 // ctrl.list[0].progress(0.5);
 // console.log(ctrl.list.length); //2
 m.render(document.body, install_collection.selection_view(ctrl));
@@ -145,7 +156,7 @@ m.render(document.body, install_collection.selection_view(ctrl));
 function confirm(){
     var add_ons = {names: [], urls: []};
     for (var i = 0; i < ctrl.list.length; i++) {
-        if (ctrl.list[i].button_class() == enabled){
+        if (ctrl.list[i].button_class() == ENABLED){
             add_ons.names.push(ctrl.list[i].name());
             add_ons.urls.push(ctrl.list[i].url());
         }
@@ -166,9 +177,7 @@ addon.port.emit("loaded");
 addon.port.on("add-ons", function(add_ons) {
     ctrl.clear();
     for (var i = 0; i < add_ons.names.length; i++) {
-        ctrl.name(add_ons.names[i]);
-        ctrl.url(add_ons.urls[i]);
-        ctrl.add(ctrl.name, ctrl.url);
+        ctrl.add(add_ons.names[i], add_ons.urls[i]);
     }
     m.render(document.body, install_collection.selection_view(ctrl));
 });
@@ -177,9 +186,7 @@ addon.port.on("install", function(add_ons) {
     //switch to install view
     ctrl.clear();
     for (var i = 0; i < add_ons.names.length; i++) {
-        ctrl.name(add_ons.names[i]);
-        ctrl.url(add_ons.urls[i]);
-        ctrl.add(ctrl.name, ctrl.url);
+        ctrl.add(add_ons.names[i], add_ons.urls[i]);
     }
     m.render(document.body, install_collection.install_view(ctrl));
 });
@@ -194,20 +201,13 @@ addon.port.on("install-finished", function(finished) {
     var add_on = get_add_on_by_name(finished.name);
     add_on.progress(1);
     if (finished.needs_restart){
-        add_on.progress_class(p_restart);
+        add_on.progress_class(P_RESTART);
         add_on.name(add_on.name() + " - Needs restart");
     } else {
-        add_on.progress_class(p_success);
+        add_on.progress_class(P_SUCCESS);
     }
     m.render(document.body, install_collection.install_view(ctrl));
-    var all_done = true;
-    for (var i = 0; i < ctrl.list.length; i++) {
-        if (ctrl.list[i].progress_class() == p_normal){
-            all_done = false;
-            break;
-        }
-    }
-    if (all_done){
+    if (!ctrl.list.some(e => e.progress_class() == P_NORMAL)){
         addon.port.emit("all-done");
     }
 });
