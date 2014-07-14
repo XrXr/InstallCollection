@@ -1,34 +1,49 @@
 self.port.on("get-add-ons", function() {
-    const item_class = "item";
-    const button_class = "button  add installer";
-    var item_blocks = document.getElementsByClassName(item_class);
-    var xpi_links = [];
-    var addon_titles = [];
+    const ITEM_CLASS = "item";
+    const BUTTON_CLASS = "button  add installer";
+    const NEED_MANUAL = "button contrib go  installer";
+    var item_blocks = document.getElementsByClassName(ITEM_CLASS);
+    var installs = [];
+    var manual_installs = [];
     if (item_blocks.length === 0){
         self.port.emit("no-add-ons-found", 'nothing at all');
         return;
     }
     for (var c = 0; c < item_blocks.length; c++) {
-        var install_buttons = item_blocks[c].getElementsByClassName(button_class);
+        var install_buttons = item_blocks[c].getElementsByClassName(BUTTON_CLASS);
+        var contrib_buttons = item_blocks[c].getElementsByClassName(NEED_MANUAL);
         if (install_buttons.length > 0) {
-            for (var d = 0; d < install_buttons.length; d++) {
+            for (let d = 0; d < install_buttons.length; d++) {
                 if (install_buttons[d].clientWidth !== 0 &&
                     install_buttons[d].clientHeight !== 0) {
                     //probably not the best way to check if an add-on can be installed,
                     //but works well enough
-                    xpi_links.push(install_buttons[d].href);
-                    addon_titles.push(item_blocks[c].getElementsByTagName('h3')[0]
+                    installs.push({name: item_blocks[c].getElementsByTagName('h3')[0]
                         .getElementsByTagName('a')[0]
-                        .text.trim());
+                        .text.trim(),
+                        link: install_buttons[d].href});
+                }
+            }
+        }
+        if (contrib_buttons.length > 0){
+            for (let d = 0; d < contrib_buttons.length; d++) {
+                if (contrib_buttons[d].clientWidth !== 0 &&
+                    contrib_buttons[d].clientHeight !== 0) {
+                    //probably not the best way to check if an add-on can be installed,
+                    //but works well enough
+                    manual_installs.push({name: item_blocks[c].getElementsByTagName('h3')[0]
+                        .getElementsByTagName('a')[0]
+                        .text.trim(),
+                        link: contrib_buttons[d].href});
                 }
             }
         }
     }
-    if (xpi_links.length === 0) {
+    if (installs.length === 0) {
         self.port.emit("no-add-ons-found", 'nothing available');
         return;
     }
-    self.port.emit('found-add-ons', {names: addon_titles, urls: xpi_links});
+    self.port.emit('found-add-ons', {installs: installs, manual_installs: manual_installs});
 
     // for (var i = 0; i < xpi_links.length; i++) {
     //     console.log(addon_titles[i] + " " + xpi_links[i]);
