@@ -44,10 +44,13 @@ self.port.on("get-add-ons", function() {
         return;
     }
     self.port.emit('found-add-ons', {installs: installs, manual_installs: manual_installs});
-
-    // for (var i = 0; i < xpi_links.length; i++) {
-    //     console.log(addon_titles[i] + " " + xpi_links[i]);
-    // }
 });
 
-self.port.emit('collection-page');
+self.port.on("get-total", function() {
+    const TOTAL_PARENT = "separated-listing";
+    // this makes strong assumption about the collection page. If amo update its layout,
+    // not handling the error will help with the error being reported
+    self.port.emit("total", Number(document.
+        getElementsByClassName(TOTAL_PARENT)[0].
+        children[0].textContent.match(/[0-9]+/)[0]));
+});
