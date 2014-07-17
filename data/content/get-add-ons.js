@@ -1,3 +1,5 @@
+"use strict";
+window.stop();
 self.port.on("get-add-ons", function() {
     const ITEM_CLASS = "item";
     const BUTTON_CLASS = "button  add installer";
