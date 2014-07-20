@@ -22,10 +22,19 @@ function test_add_on_list (assert, add_ons) {
     assert.ok(Array.isArray(add_ons.installs) &&
                 Array.isArray(add_ons.manual_installs),
               "'manual_installs' and 'installs' are arrays");
-    for (let element of add_ons.installs){
-        // this test is only ran if r.installs is not empty
-        test_add_on(assert, element);
-        break;
+    try {
+        for (let e of add_ons.installs) {
+            test_add_on(assert, e);
+        }
+    } catch (err){
+        assert.ok(false, "add_on's inside add_on_list.installs are valid");
+    }
+    try{
+        for (let e of add_ons.manual_installs) {
+            test_add_on(assert, e);
+        }
+    } catch (err){
+        assert.ok(false, "add_on's inside add_on_list.manual_installs are valid");
     }
 }
 
@@ -41,7 +50,7 @@ let test_fetch = {
         then(r => {
             test_add_on_list(assert, r);
         }, no_reject(assert)).
-            then(done, done);
+        then(done, done);
     },
 
     "test valid result, fetch_first == true": function(assert, done){
@@ -80,7 +89,9 @@ let test_fetcher = {
         f.set_url(target);
         f.start().then(r =>{
             test_add_on_list(assert, r);
-        }).then(done, done);
+        }).
+        then(done, () => assert.ok(false, "Fetcher.start()'s promise rejected unexpectedly")).
+        then(done, done);
     }
 };
 
@@ -105,7 +116,7 @@ exports["test merge()"] = function(assert){
         "merged.installs is array");
     assert.ok(Array.isArray(merged.manual_installs),
         "merged.manual_installs is array");
-    //0 + 1 + 2.... + 99 = (1 + 99) * 99 / 2 = 4950
+    // 0 + 1 + 2 ... + 99 = (1 + 99) * 99 / 2 = 4950
     assert.strictEqual(merged.installs.length, 4950,
         "merged.installs has expected length");
     assert.strictEqual(merged.manual_installs.length,
