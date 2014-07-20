@@ -1,42 +1,50 @@
-"use strict";
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * Author: XrXr
+ */
 const fetcher = require("./fetcher");
 const { all } = require("sdk/core/promise");
 
 let target = "https:/addons.mozilla.org/en-US/firefox/collections/idenis/power/?page=1/";
 
-
-function test_add_on (assert, add_on) {
-    assert.ok(add_on.hasOwnProperty("name") &&
-        add_on.hasOwnProperty("link"),
-        "has 'name' and 'link' as properies" );
-    assert.ok(typeof add_on.name === "string" &&
-        typeof add_on.link === "string",
-        "'name' and 'link' are strings");
-}
-
-function test_add_on_list (assert, add_ons) {
-    assert.ok(add_ons.hasOwnProperty('installs'),
-        "has 'installs' property");
-    assert.ok(add_ons.hasOwnProperty('manual_installs'),
-        "has 'manual_installs' property");
-    assert.ok(Array.isArray(add_ons.installs) &&
-                Array.isArray(add_ons.manual_installs),
-              "'manual_installs' and 'installs' are arrays");
-    try {
-        for (let e of add_ons.installs) {
-            test_add_on(assert, e);
-        }
-    } catch (err){
-        assert.ok(false, "add_on's inside add_on_list.installs are valid");
+let test_add_on_list = (function(){
+    function test_add_on (assert, add_on) {
+        assert.ok(add_on.hasOwnProperty("name") &&
+            add_on.hasOwnProperty("link"),
+            "has 'name' and 'link' as properies" );
+        assert.ok(typeof add_on.name === "string" &&
+            typeof add_on.link === "string",
+            "'name' and 'link' are strings");
     }
-    try{
-        for (let e of add_ons.manual_installs) {
-            test_add_on(assert, e);
+
+    function test_add_on_list (assert, add_ons) {
+        assert.notEqual(add_ons, undefined, "add_on_list is defined");
+        assert.ok(add_ons.hasOwnProperty('installs'),
+            "has 'installs' property");
+        assert.ok(add_ons.hasOwnProperty('manual_installs'),
+            "has 'manual_installs' property");
+        assert.ok(Array.isArray(add_ons.installs) &&
+                    Array.isArray(add_ons.manual_installs),
+                  "'manual_installs' and 'installs' are arrays");
+        try {
+            for (let e of add_ons.installs) {
+                test_add_on(assert, e);
+            }
+        } catch (err){
+            assert.ok(false, "add_on's inside add_on_list.installs are valid");
         }
-    } catch (err){
-        assert.ok(false, "add_on's inside add_on_list.manual_installs are valid");
+        try{
+            for (let e of add_ons.manual_installs) {
+                test_add_on(assert, e);
+            }
+        } catch (err){
+            assert.ok(false, "add_on's inside add_on_list.manual_installs are valid");
+        }
     }
-}
+    return test_add_on_list;
+})();
 
 function no_reject (assert) {
     return _ => {
@@ -55,7 +63,7 @@ let test_fetch = {
 
     "test valid result, fetch_first == true": function(assert, done){
         fetcher.fetch(target, true)[0].then(r => {
-            assert.ok(r.constructor.name === "FetchResult",
+            assert.strictEqual(r.constructor.name, "FetchResult",
                 "constructor of the result is called FetchResult");
             assert.strictEqual(typeof r.add_ons, "object",
                 "type of fetch_result.add_ons is object");
@@ -68,7 +76,7 @@ let test_fetch = {
 
     "test destroyer": function(assert, done){
         let [promise, destroyer] = fetcher.fetch(target);
-        assert.ok(typeof destroyer === "function", "destroyer is a function");
+        assert.strictEqual(typeof destroyer, "function", "destroyer is a function");
         assert.ok(destroyer(), "First destroyer call returns true");
         let result = [];
         for (var i = 0; i < 100; i++) {
