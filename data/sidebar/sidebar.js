@@ -25,8 +25,31 @@ install_collection.Add_on = function(name, link){
 };
 
 // views
+install_collection.fetching_view = function(ctrl){
+  return m("div", {id:"floatingCirclesG"}, [
+      m("div", {class:"f_circleG", id:"frotateG_01"}
+      ),
+      m("div", {class:"f_circleG", id:"frotateG_02"}
+      ),
+      m("div", {class:"f_circleG", id:"frotateG_03"}
+      ),
+      m("div", {class:"f_circleG", id:"frotateG_04"}
+      ),
+      m("div", {class:"f_circleG", id:"frotateG_05"}
+      ),
+      m("div", {class:"f_circleG", id:"frotateG_06"}
+      ),
+      m("div", {class:"f_circleG", id:"frotateG_07"}
+      ),
+      m("div", {class:"f_circleG", id:"frotateG_08"}
+      ),
+      m("div", {class:"text-under"}, [m("p", ["Fetching from"]),
+                                      m("p", [ctrl.collection_title])])
+    ]);
+};
+
 install_collection.install_view = function(ctrl){
-    return  [m('button', {type: 'button',
+    return [m('button', {type: 'button',
             class: "btn btn-info utility-button center-block",
             onclick: () => ctrl.manually_install(install_collection.install_view)},
             "Need manual install"), m('br'),
@@ -58,8 +81,10 @@ install_collection.selection_view = function(ctrl){
             "Toggle all"),
         m('button', {type: 'button',
             class: "btn btn-info utility-button center-block",
-            onclick: () => ctrl.manually_install(install_collection.selection_view)},
+            onclick: () => ctrl.manually_install(install_collection.selection_view),
+            disabled: ctrl.manual_installs.length > 0 ? "" : "true"},
             "Need manual install"),
+        m('div', {style:{textAlign: "center"}}, ["Old add-ons will be updated"]),
         m('hr', {style:{marginTop:"10px", marginBottom:"10px"}}),
         m('table', ctrl.installs.map(function (add_on, index){
             return m('tr', [
@@ -118,6 +143,7 @@ install_collection.manually_install_view = function function_name (view, ctrl) {
 install_collection.install_controller = function(){
     var ctrl = this;
     this.update_lock = false;
+    this.collection_title = "";
     this.installs = [];
     this.manual_installs = [];
     this.confirm_timer = m.prop(3);
@@ -185,12 +211,13 @@ install_collection.install_controller = function(){
 };
 
 var ctrl = new install_collection.install_controller();
-ctrl.add("Write code", "Good luck!");
-ctrl.add("Write code", "Good luck!");
-ctrl.add_manual("Write code", "Good luck!");
+// ctrl.add("Write code", "Good luck!");
+// ctrl.add("Write code", "Good luck!");
+// ctrl.add_manual("Write code", "Good luck!");
 // ctrl.installs[0].progress(0.5);
 // console.log(ctrl.installs.length); //2
-m.render(document.body, install_collection.selection_view(ctrl));
+m.render(document.body, install_collection.fetching_view(ctrl));
+// m.render(document.body, install_collection.selection_view(ctrl));
 // m.render(document.body, install_collection.manually_install_view(install_collection.selection_view, ctrl));
 // m.render(document.body, install_collection.confirm_install_view(ctrl));
 // m.render(document.body, install_collection.install_view(ctrl));
@@ -213,6 +240,11 @@ function get_add_on_by_name(name) {
         }
     }
 }
+
+addon.port.on("collection-title", function(title){
+    ctrl.collection_title = title;
+    m.render(document.body, install_collection.fetching_view(ctrl));
+});
 
 addon.port.on("add-ons", function(add_ons) {
     ctrl.update_lists(add_ons);
