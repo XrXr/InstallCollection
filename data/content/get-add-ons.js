@@ -4,7 +4,6 @@
  *
  * Author: XrXr
  */
-"use strict";
 window.stop();
 self.port.on("get-add-ons", function() {
     const ITEM_CLASS = "item";

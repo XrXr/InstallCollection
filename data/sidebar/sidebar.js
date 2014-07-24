@@ -25,8 +25,15 @@ install_collection.Add_on = function(name, link){
 };
 
 // views
+install_collection.error_view = function(ctrl){
+    return m("div", {class: "middle error-x"}, [
+        m("div", {class:"text-under", style:{left: "-69px", width: "180px", fontSize: "18px"}},
+        [m("p", {},["Couldn't find any add-on to install"])])
+    ]);
+};
+
 install_collection.fetching_view = function(ctrl){
-  return m("div", {id:"floatingCirclesG"}, [
+  return m("div", {id:"floatingCirclesG", class: "middle"}, [
       m("div", {class:"f_circleG", id:"frotateG_01"}
       ),
       m("div", {class:"f_circleG", id:"frotateG_02"}
@@ -43,6 +50,8 @@ install_collection.fetching_view = function(ctrl){
       ),
       m("div", {class:"f_circleG", id:"frotateG_08"}
       ),
+      // note that Mithril is safe by default, so "<script>alert('good day')</script>"
+      // as title would just show up as text
       m("div", {class:"text-under"}, [m("p", ["Fetching from"]),
                                       m("p", [ctrl.collection_title])])
     ]);
@@ -82,11 +91,13 @@ install_collection.selection_view = function(ctrl){
         m('button', {type: 'button',
             class: "btn btn-info utility-button center-block",
             onclick: () => ctrl.manually_install(install_collection.selection_view),
-            disabled: ctrl.manual_installs.length > 0 ? "" : "true"},
-            "Need manual install"),
+            style: ctrl.manual_installs.length > 0 ? {} : {display: "none"}},
+            "Need manual install (" + ctrl.manual_installs.length + ")"),
+        m('input', {type: "text", placeholder: "Filter add-ons", class: "form-control",
+            oninput: ctrl.filter_add_ons}),
         m('div', {style:{textAlign: "center"}}, ["Old add-ons will be updated"]),
         m('hr', {style:{marginTop:"10px", marginBottom:"10px"}}),
-        m('table', ctrl.installs.map(function (add_on, index){
+        m('table', ctrl.filtered.map(function (add_on, index){
             return m('tr', [
                 m('td',{style: {padding: "0 0 5px 5px"}},[
                     m('button',{onclick: m.withAttr('class', function(value){
@@ -95,8 +106,7 @@ install_collection.selection_view = function(ctrl){
                         } else {
                             add_on.button_class(ENABLED);
                         }
-                        m.render(document.body, install_collection.
-                            selection_view(ctrl));
+                        render.selection(ctrl);
                     }),
                         type: 'button', class: add_on.button_class()},
                         add_on.name())
@@ -119,7 +129,7 @@ install_collection.confirm_install_view = function(ctrl) {
         ]);
 };
 
-install_collection.manually_install_view = function function_name (view, ctrl) {
+install_collection.manually_install_view = function (view, ctrl) {
     ctrl.update_lock = true;
     return m('div', [m('p', {style:{textAlign: "center"}},
             "The following add-ons cannot be installed automatically"),
@@ -147,6 +157,13 @@ install_collection.install_controller = function(){
     this.installs = [];
     this.manual_installs = [];
     this.confirm_timer = m.prop(3);
+    this.filtered = this.installs;
+
+    this.filter_add_ons = function(event){
+        var keyword = event.target.value.toLowerCase();
+        ctrl.filtered = ctrl.installs.filter(a => a.name().toLowerCase().contains(keyword));
+        render.selection(ctrl);
+    };
 
     this.clear_to_install = function() {
         return ctrl.installs.some(e => e.button_class() == ENABLED);
@@ -173,10 +190,11 @@ install_collection.install_controller = function(){
         ctrl.clear();
         add_ons.installs.forEach(a => ctrl.add(a.name, a.link));
         add_ons.manual_installs.forEach(a => ctrl.add_manual(a.name, a.link));
+        ctrl.filtered = ctrl.installs;
     };
 
     this.confirm_install = function() {
-        m.render(document.body, install_collection.confirm_install_view(ctrl));
+        render.confirm_install(ctrl);
         function subtract(times) {
             if (times === 0){
                 return;
@@ -186,7 +204,7 @@ install_collection.install_controller = function(){
                 if (ctrl.confirm_timer() === 0){
                     ctrl.confirm_timer(null);
                 }
-                m.render(document.body, install_collection.confirm_install_view(ctrl));
+                render.confirm_install(ctrl);
                 subtract(times - 1);
             }, 1000);
         }
@@ -202,7 +220,7 @@ install_collection.install_controller = function(){
         } else {
             ctrl.installs.forEach(e => e.button_class(ENABLED));
         }
-        m.render(document.body, install_collection.selection_view(ctrl));
+        render.selection(ctrl);
     };
 
     this.manually_install = function(view) {
@@ -211,16 +229,29 @@ install_collection.install_controller = function(){
 };
 
 var ctrl = new install_collection.install_controller();
-// ctrl.add("Write code", "Good luck!");
-// ctrl.add("Write code", "Good luck!");
+// for (var i = 0; i < 100; i++) {
+//     ctrl.add(String.fromCharCode(65 + Math.random() * 57,
+//                                  65 + Math.random() * 57,
+//                                  65 + Math.random() * 57),
+//              "Good luck!");
+// }
 // ctrl.add_manual("Write code", "Good luck!");
 // ctrl.installs[0].progress(0.5);
 // console.log(ctrl.installs.length); //2
-m.render(document.body, install_collection.fetching_view(ctrl));
-// m.render(document.body, install_collection.selection_view(ctrl));
-// m.render(document.body, install_collection.manually_install_view(install_collection.selection_view, ctrl));
-// m.render(document.body, install_collection.confirm_install_view(ctrl));
-// m.render(document.body, install_collection.install_view(ctrl));
+
+function render_view (view, ctrl) {
+    // I can do this since none of the view funcitons depend on "this"
+    m.render(document.body, view(ctrl));
+}
+
+var render = {
+    selection: ctrl => render_view(install_collection.selection_view, ctrl),
+    install: ctrl => render_view(install_collection.install_view, ctrl),
+    confirm_install: ctrl => render_view(install_collection.confirm_install_view, ctrl),
+    fetching: ctrl => render_view(install_collection.fetching_view, ctrl),
+    error: ctrl => render_view(install_collection.error_view, ctrl),
+};
+render.fetching(ctrl);
 
 function confirm() {
     var add_ons = {installs: [],
@@ -243,25 +274,29 @@ function get_add_on_by_name(name) {
 
 addon.port.on("collection-title", function(title){
     ctrl.collection_title = title;
-    m.render(document.body, install_collection.fetching_view(ctrl));
+    render.fetching(ctrl);
 });
 
 addon.port.on("add-ons", function(add_ons) {
+    if (!add_ons){
+        render.error(ctrl);
+        return;
+    }
     ctrl.update_lists(add_ons);
-    m.render(document.body, install_collection.selection_view(ctrl));
+    render.selection(ctrl);
 });
 
 addon.port.on("install", function(add_ons) {
     //switch to install view
     ctrl.update_lists(add_ons);
-    m.render(document.body, install_collection.install_view(ctrl));
+    render.install(ctrl);
 });
 
 addon.port.on("progress-update", function(progress_update) {
     get_add_on_by_name(progress_update.name).
         progress(progress_update.progress);
     if (!ctrl.update_lock){
-        m.render(document.body, install_collection.install_view(ctrl));
+        render.install(ctrl);
     }
 });
 
@@ -275,7 +310,7 @@ addon.port.on("install-finished", function(finished) {
         add_on.progress_class(P_SUCCESS);
     }
     if (!ctrl.update_lock){
-        m.render(document.body, install_collection.install_view(ctrl));
+        render.install(ctrl);
     }
     if (!ctrl.installs.some(e => e.progress_class() == P_NORMAL)){
         addon.port.emit("all-done");

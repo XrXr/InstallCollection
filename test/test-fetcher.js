@@ -103,6 +103,16 @@ let test_fetcher = {
     }
 };
 
+function test_fetcher_single (assert, done) {
+    let f = fetcher.Fetcher();
+    f.set_url("https://addons.mozilla.org/en-US/firefox/collections/mozilla/webdeveloper/");
+    f.start().then(r =>{
+        test_add_on_list(assert, r);
+    }).
+    then(done, () => assert.ok(false, "Fetcher.start()'s promise rejected unexpectedly, single page")).
+    then(done, done);
+}
+
 exports["test merge()"] = function(assert){
     function maker(num){
         let a = {installs: [], manual_installs: []};
@@ -132,5 +142,6 @@ exports["test merge()"] = function(assert){
 };
 exports["test fetch()"] = test_fetch;
 exports["test Fetcher()"] = test_fetcher;
+exports["test Fetcher(), single"] = test_fetcher_single;
 
 require("sdk/test").run(exports);

@@ -14,17 +14,36 @@
         <meta charset="utf-8">
         <style>
             .progress-text {
-                color: black;
-                position: absolute;
-                left: 6%;
-                white-space: nowrap;
+              color: black;
+              position: absolute;
+              left: 6%;
+              white-space: nowrap;
             }
             .utility-button {
-                margin-top: 10px;
-                position: relative;
+              margin-top: 10px;
+              position: relative;
+            }
+            .middle{
+              left: 0px;
+              right: 0px;
+              top: 0px;
+              bottom: 0px;
+              position: absolute;
+              margin: auto;
+            }
+            .error-x{
+              width: 40px;
+              height: 64px;
+              /*Icon from Octicon by Github. License: MIT*/
+              background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAABACAYAAABoWTVaAAAA3klEQVRoge3TQQ6EMAxD0Rw9N5/ZsGCBShPbbZFsiWW+HhJEeJ7neZ538vJ6juxnRPyupx1R9e/HCiTUfzpmIqH+6JiBhPozxwgS6leOO0io3zmuIOE+EnhD0toKJL3JDCpemBaW4VhIKW4nchq3A1nGrUS2cSuQME6JpOEUSDqOiZThjgcycJ/4/j7xB9OQShyMXIFrI1fiysgduGkkiktSQ4ZTtDRBZlOBo7aRyAjHQCYSmcFR+5VIBUftz0Q6OGp/FEFw1P5ThIGj9u+R8vGqfiLHB/Q9z/M8zwP3B6HDfO41wwEOAAAAAElFTkSuQmCC");
+              background-repeat: no-repeat;
+            }
+            input{
+              margin-top: 10px;
+              margin-bottom: 10px;
             }
             button{
-                outline: 0 !important;
+              outline: 0 !important;
             }
         </style>
         <script type="text/javascript" src="lib/mithril.min.js"></script>
