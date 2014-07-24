@@ -251,7 +251,7 @@ var render = {
     fetching: ctrl => render_view(install_collection.fetching_view, ctrl),
     error: ctrl => render_view(install_collection.error_view, ctrl),
 };
-render.fetching(ctrl);
+// render.fetching(ctrl);
 
 function confirm() {
     var add_ons = {installs: [],
@@ -273,6 +273,7 @@ function get_add_on_by_name(name) {
 }
 
 addon.port.on("collection-title", function(title){
+    // entry point
     ctrl.collection_title = title;
     render.fetching(ctrl);
 });
@@ -287,7 +288,7 @@ addon.port.on("add-ons", function(add_ons) {
 });
 
 addon.port.on("install", function(add_ons) {
-    //switch to install view
+    // entry point when installation is in progress
     ctrl.update_lists(add_ons);
     render.install(ctrl);
 });
