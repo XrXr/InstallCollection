@@ -195,6 +195,7 @@ install_collection.install_controller = function(){
 
     this.confirm_install = function() {
         render.confirm_install(ctrl);
+        ctrl.confirm_timer(3);
         function subtract(times) {
             if (times === 0){
                 return;
