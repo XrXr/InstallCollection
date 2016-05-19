@@ -4,7 +4,7 @@
  *
  * Author: XrXr
  */
-const fetcher = require("./fetcher");
+const fetcher = require("../lib/fetcher");
 const { all } = require("sdk/core/promise");
 
 let target = "https:/addons.mozilla.org/en-US/firefox/collections/idenis/power/?page=1/";
@@ -70,8 +70,7 @@ let test_fetch = {
             assert.strictEqual(typeof r.total, "number",
                 "type of fetch_result.total is number");
             test_add_on_list(assert, r.add_ons);
-        }, no_reject(assert)).
-            then(done, done);
+        }, no_reject(assert)).then(done, done);
     },
 
     "test destroyer": function(assert, done){
