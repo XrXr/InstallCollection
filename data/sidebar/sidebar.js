@@ -94,6 +94,7 @@ install_collection.selection_view = function(ctrl){
             style: ctrl.manual_installs.length > 0 ? {} : {display: "none"}},
             "Need manual install (" + ctrl.manual_installs.length + ")"),
         m('input', {type: "text", placeholder: "Filter add-ons", class: "form-control",
+            value: ctrl.filter_pattern,
             oninput: ctrl.filter_add_ons}),
         m('div', {style:{textAlign: "center"}}, ["Old add-ons will be updated"]),
         m('hr', {style:{marginTop:"10px", marginBottom:"10px"}}),
@@ -138,10 +139,9 @@ install_collection.manually_install_view = function (view, ctrl) {
             class: "btn btn-info utility-button center-block",
             onclick: () => {
                 ctrl.update_lock = false;
-                m.render(document.body,
-                view(ctrl));}
-            },
-            "Back"),
+                m.render(document.body, view(ctrl));
+            }
+        }, "Back"),
         m('br'),
         m('ul', {style:{paddingLeft: 0, listStyle: "none"}},
             ctrl.manual_installs.map(
@@ -157,9 +157,11 @@ install_collection.install_controller = function(){
     this.installs = [];
     this.manual_installs = [];
     this.confirm_timer = m.prop(3);
+    this.filter_pattern = "";
     this.filtered = this.installs;
 
-    this.filter_add_ons = function(event){
+    this.filter_add_ons = event => {
+        this.filter_pattern = event.target.value;
         var keyword = event.target.value.toLowerCase();
         ctrl.filtered = ctrl.installs.filter(a => a.name().toLowerCase().contains(keyword));
         render.selection(ctrl);
